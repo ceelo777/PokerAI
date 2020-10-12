@@ -8,7 +8,7 @@ class PokerGame:
         self.jack = Rank('J')
         self.queen = Rank('Q')
         self.king = Rank('K')
-        deck = [jack, queen, king]        
+        deck = [jack, queen, king]       
 
         # Distribute the cards to each player
         random.shuffle(deck)
@@ -26,8 +26,17 @@ class PokerGame:
 
         # Small, big blind
         self.smallBlind = ""
-        self.bigBlind = ""
+        self.bigBlind = ""        
 
+    def get_info_set(i_map, card, history):
+        key = card + " " + history
+        if key not in i_map:            
+            info_set = InformationSet(key, 3)
+            i_map[key] = info_set
+            return info_set
+        return i_map[key]
+
+    
     def makeAction(self, player, action, amount):
         pass
 
