@@ -1,4 +1,4 @@
-import InformationSet
+from InformationSet import InformationSet
 import numpy as np
 
 class Model:
@@ -34,21 +34,21 @@ class Model:
     # recursive method -- check for base case
     def cfr(self, i_map, history, card_1, card_2, pr_1, pr_2, pr_c):
         # if we've reached a chance node
-        if (self.is_chance_node()):
-            self.chance_util(i_map)
+        if (self.is_chance_node(history)):
+            return self.chance_util(i_map)
 
         # if we've reached a terminal node (game is finished)
-        if (self.is_terminal_node()):
-            self.terminal_util()
+        if (self.is_terminal_node(history)):
+            return self.terminal_util(history, card_1, card_2)
 
         # Calculate the length of history to find whose turn it is
         history_len = len(history)        
         
         # Check whose turn it is (0 for Player 1, and 1 for Player 2)
-        player_1_turn = n % 2 == 0
+        player_1_turn = history_len % 2 == 0
 
         # Get the information set
-        info_set = get_info_set(i_map, card1 if not player_1_turn else card2, history)
+        info_set = self.get_info_set(i_map, card_1 if not player_1_turn else card_2, history)
 
         # Get the appropriate strategy from the information set
         info_set_strategy = info_set.strategy        
@@ -66,12 +66,12 @@ class Model:
         for i, action in enumerate(["c", "b"]):
             next_history = history + action
             if player_1_turn:
-                action_utils[i] = -1 * cfr(self, i_map, next_history, card_1, card_2, pr_1 * strategy[i], pr_2, pr_c)
+                action_utils[i] = -1 * self.cfr(i_map, next_history, card_1, card_2, pr_1 * info_set_strategy[i], pr_2, pr_c)
             else:
-                action_utils[i] = -1 * cfr(self, i_map, next_history, card_1, card_2, pr_1, pr_2 * strategy[i], pr_c)
+                action_utils[i] = -1 * self.cfr(i_map, next_history, card_1, card_2, pr_1, pr_2 * info_set_strategy[i], pr_c)
 
         # Utility of information sets
-        util = sum(action_utils * strategy)
+        util = sum(action_utils * info_set_strategy)
         regrets = action_utils - util
         if player_1_turn:
             info_set.regret_sum += pr_2 * pr_c * regrets
@@ -81,16 +81,16 @@ class Model:
         return util
 
 
-    def get_info_set(i_map, card, history):
-        key = card + " " + history
+    def get_info_set(self, i_map, card, history):
+        key = f"{card} {history}"
         if key not in i_map:            
             info_set = InformationSet(key, 3)
             i_map[key] = info_set
             return info_set
         return i_map[key]
 
-    def is_chance_node(self):
-        return self.history == ""
+    def is_chance_node(self, history):
+        return history == ""
     
     def chance_util(self, i_map):
         expected_value = 0
@@ -100,11 +100,11 @@ class Model:
                     expected_value += self.cfr(i_map, "rr", i, j, 1, 1, 1 / self.n_possibilities)  # TODO: fix this method call
         return expected_value / n_possibilities
     
-    def is_terminal_node(history):
+    def is_terminal_node(self, history):
         terminal_nodes = ["rrcbc", "rrcc", "rrcbb", "rrbc", "rrbb"]
         return history in terminal_nodes
     
-    def terminal_util(history, card_1, card_2):
+    def terminal_util(self, history, card_1, card_2):
         # Initialize length of history to find whose turn it is
         n = len(history)
 
@@ -127,14 +127,14 @@ class Model:
                 return 2
             return -2
     
-    def card_str(card):
+    def card_str(self, card):
         if card == 0:
             return "J"
         elif card == 1:
             return "Q"
         return "K"
     
-    def display_results(ev, i_map):
+    def display_results(self, ev, i_map):
         print("Player 1 Expected Value: {}".format(ev))
         print("Player 2 Expected Value: {}".format(-1 * ev))
 

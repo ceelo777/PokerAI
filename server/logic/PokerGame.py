@@ -28,6 +28,8 @@ class PokerGame:
         self.cardsOnTable = []
         # Index of card in deck
         self.deck_index = 0
+        # Bets of each player
+        self.player_bets = {player: 0 for player in player_amounts}
 
         '''
         Stats
@@ -64,7 +66,8 @@ class PokerGame:
         self.dealCardsOnTable(1, 1)
 
     def makeAction(self, player, action, amount):
-        pass
+        if player not in self.player_bets:
+            raise ValueError("Player ")
 
     def isRoundEnd(self, history):
         pass
